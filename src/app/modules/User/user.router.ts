@@ -13,11 +13,17 @@ router.post(
   UserControllers.createUser,
 );
 
+//get user profile
+router.get('/api/user/:userId', UserControllers.getUserProfile);
 
-// Fetch User Profile Route
-router.get(
-    '/api/user/profile',
-    auth(),  
-    UserControllers.getUserProfile,
-  );
+//user update their profile
+router.put('/api/user/:userId', UserControllers.updateUserProfile);
+
+
+// Follow a user
+router.post('/api/user/:userId/follow', UserControllers.followUser);
+
+// Unfollow a user
+router.post('/api/user/:userId/unfollow', UserControllers.unfollowUser);
+
 export const UserRoutes = router;

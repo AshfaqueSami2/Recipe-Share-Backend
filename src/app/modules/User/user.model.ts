@@ -20,6 +20,9 @@ const userSchema = new Schema<TUser, UserModel>(
       lowercase: true,
       trim: true,
     },
+    bio: {
+      type: String,
+    },
     profilePicture: {
       type: String,
       default: '',
@@ -50,13 +53,15 @@ const userSchema = new Schema<TUser, UserModel>(
       required: false,
       trim: true,
     },
+    followers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Users following this user
+    following: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Users this user is following
     passwordResetToken: {
       type: String,
-      default: undefined, 
+      default: undefined,
     },
     passwordResetExpires: {
       type: Date,
-      default: undefined, 
+      default: undefined,
     },
   },
   {

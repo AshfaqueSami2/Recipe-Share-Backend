@@ -1,8 +1,9 @@
-import { RequestHandler } from 'express';
+import { Request, RequestHandler, Response } from 'express';
 import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
 import httpStatus from 'http-status';
 import { UserServices } from './user.service';
+import AppError from '../../errors/AppError';
 
 const createUser: RequestHandler = catchAsync(async (req, res) => {
   const userData = req.body;
@@ -21,46 +22,92 @@ const createUser: RequestHandler = catchAsync(async (req, res) => {
 
 //get user/admin profile
 
-const getUserProfile: RequestHandler = catchAsync(async (req, res) => {
-  const userId = req.user?.id; // Extracted from the auth middleware
+const getUserProfile = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
 
-  if (!userId) {
-    return sendResponse(res, {
-      statusCode: httpStatus.UNAUTHORIZED,
-      success: false,
-      message: 'User not found',
-      data: undefined,
-    });
-  }
-
+  // Call the service to get user data
   const user = await UserServices.findUserById(userId);
+
   if (!user) {
-    return sendResponse(res, {
-      statusCode: httpStatus.NOT_FOUND,
-      success: false,
-      message: 'User not found',
-      data: undefined,
-    });
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  const userData = {
+  const userProfile = {
     _id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role,
-    phone: user.phone,
-    address: user.address,
     profilePicture: user.profilePicture,
+    bio: user.bio,
+    followersCount: user.followers.length,
+    followingCount: user.following.length,
+    followers: user.followers,  // Optionally include detailed follower info
+    following: user.following,  // Optionall
   };
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: userData,
+    data: userProfile,
+  });
+});
+
+//update user profile
+const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { name, profilePicture, bio } = req.body;
+
+  // Call the service to update the user data
+  const updatedUser = await UserServices.updateUserProfile(userId, {
+    name,
+    profilePicture,
+    bio,
+  });
+
+  if (!updatedUser) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User profile updated successfully',
+    data: updatedUser,
+  });
+});
+
+//follow unfollow following
+const followUser = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { targetUserId } = req.body;
+
+  const targetUser = await UserServices.followUser(userId, targetUserId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `You are now following ${targetUser.name}`,
+    data: targetUser,
+  });
+});
+
+const unfollowUser = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { targetUserId } = req.body;
+
+  const targetUser = await UserServices.unfollowUser(userId, targetUserId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `You have unfollowed ${targetUser.name}`,
+    data: targetUser,
   });
 });
 
 export const UserControllers = {
   createUser,
   getUserProfile,
+  updateUserProfile,
+  followUser,
+  unfollowUser,
 };

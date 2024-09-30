@@ -14,6 +14,9 @@ export interface TUser {
   address?: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
+  bio?:string;
+  followers: string[];  // Array of user IDs who follow this user
+  following: string[];
 }
 
 export interface UserModel extends Model<TUser> {
