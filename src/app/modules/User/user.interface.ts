@@ -10,6 +10,7 @@ export interface TUser {
   password: string;
   phone?: string;
   role: 'admin' | 'user';
+  isPremium:boolean;
   profilePicture?: string;
   address?: string;
   needsPasswordChange: boolean;

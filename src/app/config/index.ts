@@ -14,4 +14,5 @@ export default {
   frontend_url:process.env.FRONTEND_URL,
   reset_pass_ui_link: process.env.RESET_PASS_UI_LINK,
   jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
+  image_bb_api_key:process.env.IMAGEBB_API_KEY,
 };

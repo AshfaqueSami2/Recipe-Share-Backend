@@ -23,9 +23,13 @@ const loginUser = async (payload: TLoginUser) => {
 
   const jwtPayload = {
     id: user._id,
+    name:user.name,
     userEmail: user.email,
     role: user.role,
+    isPremium:user.isPremium,
   };
+
+  console.log(jwtPayload.name)
 
   // create toke and sent to the client
   const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, {
@@ -47,6 +51,7 @@ const loginUser = async (payload: TLoginUser) => {
       role: user.role,
       phone: user.phone,
       address: user.address,
+      isPremium:user.isPremium
     },
     accessToken,
     refreshToken,

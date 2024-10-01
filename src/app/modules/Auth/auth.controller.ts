@@ -7,11 +7,11 @@ import AppError from '../../errors/AppError';
 import crypto from 'crypto';
 import { User } from '../User/user.model';
 
-
-
 const loginUser = catchAsync(async (req: Request, res: Response) => {
-  const { user, accessToken, refreshToken } = await AuthServices.loginUser(req.body);
-  
+  const { user, accessToken, refreshToken } = await AuthServices.loginUser(
+    req.body,
+  );
+
   const userData = {
     _id: user._id,
     name: user.name,
@@ -19,8 +19,9 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     role: user.role,
     phone: user.phone,
     address: user.address,
+    isPremium:user.isPremium
   };
-  
+
   // Set refresh token in cookies (HTTP-only, Secure for production)
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
@@ -35,7 +36,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 //change password
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   if (!req.user || !req.user.id) {
@@ -45,23 +45,24 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
 
-  const result = await AuthServices.changePassword(userId, oldPassword, newPassword);
+  const result = await AuthServices.changePassword(
+    userId,
+    oldPassword,
+    newPassword,
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: result.message,
-    data:{
+    data: {
       passwordChangedAt: result.passwordChangedAt,
-    }
+    },
   });
 });
 
-
-
 // Reset password
 const requestPasswordReset = catchAsync(async (req: Request, res: Response) => {
-
   const { email } = req.body;
   const result = await AuthServices.requestPasswordReset(email);
 
@@ -69,9 +70,7 @@ const requestPasswordReset = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: result.message,
-    data:{
-
-    }
+    data: {},
   });
 });
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
@@ -88,31 +87,30 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 
   if (!user) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Token is invalid or has expired');
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Token is invalid or has expired',
+    );
   }
 
-   // Update the user's password and clear the reset token fields
-   user.password = newPassword;
-   user.passwordResetToken = undefined;
-   user.passwordResetExpires = undefined;
-   user.passwordChangedAt = new Date(); // Optional: Track when the password was changed
-   await user.save();
+  // Update the user's password and clear the reset token fields
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordChangedAt = new Date(); // Optional: Track when the password was changed
+  await user.save();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Password reset successful',
-    data:{
-
-    }
+    data: {},
   });
 });
-
-
 
 export const AuthControllers = {
   loginUser,
   changePassword,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
 };
