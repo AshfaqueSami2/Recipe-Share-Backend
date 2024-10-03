@@ -15,6 +15,10 @@ const loginUser = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.BAD_GATEWAY, 'This user is not found');
   }
 
+
+  if (user.blocked) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Your account has been blocked by the administrator');
+  }
   //checking password
 
   if (!(await User.isPasswordMatched(payload?.password, user?.password))) {
@@ -115,8 +119,40 @@ const requestPasswordReset = async (email: string) => {
   return { message: 'Password reset link sent to your email' };
 };
 
+
+
+const refreshAccessToken = async (refreshToken: string) => {
+  // Verify the refresh token
+  const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret) as JwtPayload;
+
+  // Find the user based on the decoded token
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  // Generate a new access token with updated isPremium status
+  const newAccessToken = jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      userEmail: user.email,
+      role: user.role,
+      isPremium: user.isPremium,
+    },
+    config.jwt_access_secret as string,
+    { expiresIn: '30d' } // Adjust expiry time based on your requirement
+  );
+
+  return { accessToken: newAccessToken };
+};
+
+
+
+
 export const AuthServices = {
   loginUser,
   changePassword,
-  requestPasswordReset
+  requestPasswordReset,
+  refreshAccessToken
 };

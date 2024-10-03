@@ -6,10 +6,10 @@ import { USER_ROLE } from '../User/user.constant';
 const router = Router();
 
 // Recipe routes
-router.post('/api/recipes', auth(), RecipeControllers.createRecipe);
+router.post('/api/recipes', auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.createRecipe);
 router.get('/api/recipes', RecipeControllers.getRecipes);
 router.get('/api/recipes/:recipeId',auth(), RecipeControllers.getRecipeById);
-router.put('/api/recipes/:recipeId', RecipeControllers.updateRecipe);
+router.put('/api/recipes/:recipeId',auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.updateRecipe);
 router.delete(
   '/api/recipes/:recipeId',
   auth(USER_ROLE.admin, USER_ROLE.user),

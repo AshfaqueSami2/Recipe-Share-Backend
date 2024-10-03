@@ -4,6 +4,7 @@ import { AuthControllers } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../User/user.constant';
+import { refreshAccessToken } from './auth.refreshToken';
 
 
 const router = express.Router();
@@ -13,6 +14,10 @@ router.post(
   validateRequest(AuthValidation.loginValidationSchema),
   AuthControllers.loginUser,
 );
+
+
+router.post('/refresh-token',auth(), refreshAccessToken);
+
 
 router.patch(
   '/api/auth/change-password',

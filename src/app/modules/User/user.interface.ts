@@ -16,6 +16,7 @@ export interface TUser {
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
   bio?:string;
+  blocked:boolean;
   followers: string[];  // Array of user IDs who follow this user
   following: string[];
 }

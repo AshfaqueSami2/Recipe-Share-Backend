@@ -108,9 +108,40 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+
+
+const refreshAccessToken = catchAsync(async (req: Request, res: Response) => {
+  const { refreshToken } = req.cookies; // Or get it from the request body/header if using a different storage method
+  
+  if (!refreshToken) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Refresh token is missing');
+  }
+
+  const result = await AuthServices.refreshAccessToken(refreshToken);
+
+  // Send new access token back to the client
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Access token refreshed successfully',
+    token: result.accessToken,
+    data:{
+
+    }
+  });
+});
+
+
+
+
+
+
+
 export const AuthControllers = {
   loginUser,
   changePassword,
   requestPasswordReset,
   resetPassword,
+  refreshAccessToken
 };

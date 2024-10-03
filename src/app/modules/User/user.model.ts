@@ -54,6 +54,10 @@ const userSchema = new Schema<TUser, UserModel>(
       trim: true,
     },
     isPremium: { type: Boolean, default: false },
+    blocked: {
+      type: Boolean,
+      default: false,  // Users are not blocked by default
+    },
     followers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Users following this user
     following: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Users this user is following
     passwordResetToken: {

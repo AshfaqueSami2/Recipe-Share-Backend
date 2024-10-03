@@ -15,4 +15,8 @@ export default {
   reset_pass_ui_link: process.env.RESET_PASS_UI_LINK,
   jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
   image_bb_api_key:process.env.IMAGEBB_API_KEY,
+  amarpay_store_id: process.env.AMARPAY_STORE_ID || 'aamarpaytest' as string,
+  amarpay_signature_key: process.env.AMARPAY_SIGNATURE_KEY as string,
+  amarpay_payment_url: process.env.AMARPAY_PAYMENT_URL as string,
+  base_url: process.env.BASE_URL as string,
 };

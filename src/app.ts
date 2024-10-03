@@ -6,6 +6,8 @@ import globalErrorHandler from './middlewares/globalErrorHandler';
 import { UserRoutes } from './app/modules/User/user.router';
 import { AuthRoutes } from './app/modules/Auth/auth.route';
 import { RecipeRoutes } from './app/modules/Recipe/recipe.router';
+import { PaymentRouter } from './app/modules/Payment/payment.router';
+import { AdminRouter } from './app/modules/Admin/admin.routes';
 
 const app: Application = express();
 
@@ -18,6 +20,8 @@ app.use(cors());
 app.use('/', UserRoutes);
 app.use('/', AuthRoutes);
 app.use('/',RecipeRoutes)
+app.use('/',PaymentRouter)
+app.use('/',AdminRouter)
 
 app.use(
   session({
