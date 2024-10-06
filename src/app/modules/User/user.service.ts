@@ -5,6 +5,7 @@ import { User } from './user.model';
 
 export const createUserIntoDB = async (userData: TUser) => {
   const newUser = new User(userData);
+ 
   const result = await newUser.save();
   return result;
 };
@@ -20,6 +21,8 @@ const findUserById = async (userId: string) => {
     name: user.name,
     email: user.email,
     profilePicture: user.profilePicture,
+    phone:user.phone,
+    address:user.address,
     bio: user.bio,
     followersCount: user.followers.length,
     followingCount: user.following.length,

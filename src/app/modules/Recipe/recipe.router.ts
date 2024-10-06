@@ -5,8 +5,12 @@ import { USER_ROLE } from '../User/user.constant';
 
 const router = Router();
 
+//public recipe with id
+router.get('/public/recipes/:recipeId', RecipeControllers.publicGetRecipeById);
+
 // Recipe routes
 router.post('/api/recipes', auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.createRecipe);
+router.get('/api/recipes/myrecipes', auth(USER_ROLE.user), RecipeControllers.getMyRecipes);
 router.get('/api/recipes', RecipeControllers.getRecipes);
 router.get('/api/recipes/:recipeId',auth(), RecipeControllers.getRecipeById);
 router.put('/api/recipes/:recipeId',auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.updateRecipe);

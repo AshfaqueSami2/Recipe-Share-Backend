@@ -1,6 +1,6 @@
 import express from 'express';
 import validateRequest from '../../../middlewares/validateRequest';
-import { AuthControllers } from './auth.controller';
+import { AuthControllers, updateUserStatus } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../User/user.constant';
@@ -8,6 +8,11 @@ import { refreshAccessToken } from './auth.refreshToken';
 
 
 const router = express.Router();
+
+
+router.post('/api/users/:userId/updateStatus', updateUserStatus);
+
+
 
 router.post(
   '/api/auth/login',
@@ -33,7 +38,7 @@ router.post(
   AuthControllers.requestPasswordReset,
 );
 
-router.patch(
+router.post(
   '/api/auth/reset-password/:token',
   validateRequest(AuthValidation.resetPasswordSchema),
   AuthControllers.resetPassword,

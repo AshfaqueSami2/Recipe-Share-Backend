@@ -2,10 +2,12 @@ import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import AppError from '../../errors/AppError';
 import crypto from 'crypto';
 import { User } from '../User/user.model';
+import config from '../../config';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { user, accessToken, refreshToken } = await AuthServices.loginUser(
@@ -13,13 +15,18 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   );
 
   const userData = {
-    _id: user._id,
+   _id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,
+    bio:user.bio,
+    isPremium: user.isPremium,
+    needsPasswordChange: user.needsPasswordChange, // Corrected typo
+    profilePicture: user.profilePicture,
+    followers: user.followers,
+    following: user.following,
     phone: user.phone,
     address: user.address,
-    isPremium:user.isPremium
   };
 
   // Set refresh token in cookies (HTTP-only, Secure for production)
@@ -135,6 +142,58 @@ const refreshAccessToken = catchAsync(async (req: Request, res: Response) => {
 
 
 
+
+
+
+export const updateUserStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+  const { isPremium } = req.body;
+
+  // Find the user by ID
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return next(new AppError(httpStatus.NOT_FOUND, 'User not found'));
+  }
+
+  // Update the user's isPremium status
+  user.isPremium = isPremium;
+  await user.save();
+
+  // Prepare a new JWT payload with the updated isPremium status
+  const jwtPayload = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    bio: user.bio,
+    isPremium: user.isPremium, // Updated isPremium status
+    needsPasswordChange: user.needsPasswordChange,
+    profilePicture: user.profilePicture,
+    followers: user.followers,
+    following: user.following,
+    phone: user.phone,
+    address: user.address,
+  };
+
+  // Generate a new access token with updated isPremium status
+  const newAccessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, {
+    expiresIn: '30d',
+  });
+
+  // Optionally, you can also regenerate the refresh token if needed
+  const newRefreshToken = jwt.sign(jwtPayload, config.jwt_refresh_secret as string, {
+    expiresIn: '30d',
+  });
+
+  // Send the new token to the client
+  res.status(200).json({
+    status: 'success',
+    message: 'User status updated successfully',
+    accessToken: newAccessToken, // Send the new access token to the client
+    refreshToken: newRefreshToken, // Send the new refresh token if needed
+  });
+});
 
 
 

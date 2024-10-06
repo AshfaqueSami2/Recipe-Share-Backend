@@ -6,6 +6,7 @@ import config from '../../config';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../../utils/sendEmail';
+import catchAsync from '../../utils/catchAsync';
 
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.isUserExistsByEmail(payload?.email);
@@ -27,10 +28,17 @@ const loginUser = async (payload: TLoginUser) => {
 
   const jwtPayload = {
     id: user._id,
-    name:user.name,
-    userEmail: user.email,
+    name: user.name,
+    email: user.email,
     role: user.role,
-    isPremium:user.isPremium,
+    bio:user.bio,
+    isPremium: user.isPremium,
+    needsPasswordChange: user.needsPasswordChange, // Corrected typo
+    profilePicture: user.profilePicture,
+    followers: user.followers,
+    following: user.following,
+    phone: user.phone,
+    address: user.address,
   };
 
   console.log(jwtPayload.name)
@@ -53,9 +61,14 @@ const loginUser = async (payload: TLoginUser) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      bio:user.bio,
+      isPremium: user.isPremium,
+      needsPasswordChange: user.needsPasswordChange, // Corrected typo
+      profilePicture: user.profilePicture,
+      followers: user.followers,
+      following: user.following,
       phone: user.phone,
       address: user.address,
-      isPremium:user.isPremium
     },
     accessToken,
     refreshToken,
@@ -107,7 +120,7 @@ const requestPasswordReset = async (email: string) => {
   await user.save();
 
   // Send plain token in email
-  const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetURL = `${config.frontend_url}/reset-password/${resetToken}`;
   const message = `Forgot your password? Click on the link below to reset your password: \n\n${resetURL}\n\nIf you didn't request this, please ignore this email.`;
 
   await sendEmail({
@@ -136,9 +149,16 @@ const refreshAccessToken = async (refreshToken: string) => {
     {
       id: user._id,
       name: user.name,
-      userEmail: user.email,
+      email: user.email,
       role: user.role,
+      bio:user.bio,
       isPremium: user.isPremium,
+      needsPasswordChange: user.needsPasswordChange, // Corrected typo
+      profilePicture: user.profilePicture,
+      followers: user.followers,
+      following: user.following,
+      phone: user.phone,
+      address: user.address,
     },
     config.jwt_access_secret as string,
     { expiresIn: '30d' } // Adjust expiry time based on your requirement
@@ -146,6 +166,10 @@ const refreshAccessToken = async (refreshToken: string) => {
 
   return { accessToken: newAccessToken };
 };
+
+
+
+
 
 
 

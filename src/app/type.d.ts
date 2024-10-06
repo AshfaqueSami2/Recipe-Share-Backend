@@ -8,6 +8,7 @@ declare global {
         name: string; 
         role: string;
         isPremium:boolean;
+        profilePicture:string;
       };
     }
   }

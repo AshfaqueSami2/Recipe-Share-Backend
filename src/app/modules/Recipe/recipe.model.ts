@@ -9,7 +9,7 @@ const recipeSchema = new Schema<TRecipe>({
   instructions: { type: String, required: true },
   images: [{ type: String }],
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  published: { type: Boolean, default: false },
+  published: { type: Boolean, default: true },
   cookingTime: { type: Number, required: true },
   tags: [{ type: String }],
   premium: { type: String, enum: Object.values(RECIPE_PREMIUM_STATUS), required: true },  // Use the constants for validation
