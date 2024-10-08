@@ -7,13 +7,14 @@ import AppError from '../../errors/AppError';
 import { uploadImageToImageBB } from '../Recipe/recipe.utils';
 import { User } from './user.model';
 
-
 const createUser: RequestHandler = catchAsync(async (req, res) => {
   const userData = req.body;
 
   // Check if profilePicture is present and upload it to ImageBB
   if (userData.profilePicture) {
-    const uploadedImageUrl = await uploadImageToImageBB(userData.profilePicture);
+    const uploadedImageUrl = await uploadImageToImageBB(
+      userData.profilePicture,
+    );
     userData.profilePicture = uploadedImageUrl; // Update profilePicture to the uploaded URL
   }
 
@@ -44,13 +45,13 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
     _id: user._id,
     name: user.name,
     email: user.email,
-    phone:user.phone,
+    phone: user.phone,
     profilePicture: user.profilePicture,
     bio: user.bio,
     followersCount: user.followers.length,
     followingCount: user.following.length,
-    followers: user.followers,  // Optionally include detailed follower info
-    following: user.following,  // Optionall
+    followers: user.followers, // Optionally include detailed follower info
+    following: user.following, // Optionall
   };
 
   sendResponse(res, {
@@ -66,7 +67,10 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
   const { name, profilePicture, bio } = req.body;
 
   // If a profile picture is provided, upload it to ImageBB
-  let updatedData: { name?: string; profilePicture?: string; bio?: string } = { name, bio };
+  let updatedData: { name?: string; profilePicture?: string; bio?: string } = {
+    name,
+    bio,
+  };
 
   if (profilePicture) {
     const uploadedImageUrl = await uploadImageToImageBB(profilePicture);
@@ -88,39 +92,40 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
-//follow unfollow following
+// Follow a user
 const followUser = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { targetUserId } = req.body;
+  const { userId } = req.params; // The user who is going to be followed
+  const { currentUserId } = req.body; // The user who is following
+  // console.log(currentUserId)
 
-  const targetUser = await UserServices.followUser(userId, targetUserId);
+  // Call the service to follow the user
+  const result = await UserServices.followUser(currentUserId, userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: `You are now following ${targetUser.name}`,
-    data: targetUser,
+    message: 'User followed successfully',
+    data: result,
   });
 });
 
+// Unfollow a user
 const unfollowUser = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { targetUserId } = req.body;
+  const { userId } = req.params; // The user who is going to be unfollowed
+  const { currentUserId } = req.body; // The user who is unfollowing
+  console.log(currentUserId)
 
-  const targetUser = await UserServices.unfollowUser(userId, targetUserId);
+
+  // Call the service to unfollow the user
+  const result = await UserServices.unfollowUser(currentUserId, userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: `You have unfollowed ${targetUser.name}`,
-    data: targetUser,
+    message: 'User unfollowed successfully',
+    data: result,
   });
 });
-
-
-
-
 
 export const UserControllers = {
   createUser,
@@ -128,5 +133,4 @@ export const UserControllers = {
   updateUserProfile,
   followUser,
   unfollowUser,
-  
 };

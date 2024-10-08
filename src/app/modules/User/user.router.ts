@@ -20,10 +20,8 @@ router.get('/api/user/:userId', UserControllers.getUserProfile);
 router.put('/api/user/:userId', UserControllers.updateUserProfile);
 
 
-// Follow a user
-router.post('/api/user/:userId/follow', UserControllers.followUser);
-
-// Unfollow a user
-router.post('/api/user/:userId/unfollow', UserControllers.unfollowUser);
+//follow unfollow 
+router.post('/api/:userId/follow', UserControllers.followUser);
+router.post('/api/:userId/unfollow', UserControllers.unfollowUser);
 
 export const UserRoutes = router;

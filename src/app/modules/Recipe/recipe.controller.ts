@@ -115,30 +115,8 @@ const createRecipe: RequestHandler = catchAsync(async (req, res) => {
 
 
 
-//my recipe
-const getMyRecipes = catchAsync(async (req: Request, res: Response) => {
-  // Ensure the user is authenticated
-  if (!req.user) {
-    throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
-  }
 
-  // Fetch recipes created by the logged-in user
-  const userId = req.user.id;
-  const recipes = await Recipe.find({ user: userId }).populate('user', 'name');
 
-  // Get the total count of recipes created by the user
-  const totalRecipes = await Recipe.countDocuments({ user: userId });
-
-  // Return the recipes and total count
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    data: {
-      recipes,
-      totalRecipes,
-    },
-  });
-});
 
 const publicGetRecipeById = catchAsync(async (req: Request, res: Response) => {
   const { recipeId } = req.params;
@@ -264,6 +242,7 @@ const updateRecipe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//get all recipes from db
 const getRecipes = catchAsync(async (req: Request, res: Response) => {
   const filters = {}; // Add any filtering logic here
   const options = {
@@ -330,6 +309,8 @@ const deleteRecipe = catchAsync(async (req: Request, res: Response) => {
     },
   });
 });
+
+
 
 //publish unpublished
 const publishRecipe: RequestHandler = catchAsync(async (req, res) => {
@@ -573,6 +554,7 @@ const commentOnRecipe = catchAsync(async (req: Request, res: Response) => {
 //     data: recipe,
 //   });
 // });
+
 const updateComment = catchAsync(async (req: Request, res: Response) => {
   const { recipeId, commentId } = req.params;
   const { comment } = req.body;
@@ -637,45 +619,48 @@ const updateComment = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-
 const deleteComment = catchAsync(async (req: Request, res: Response) => {
   const { recipeId, commentId } = req.params;
 
+  // Check if user is authenticated
   if (!req.user) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
   }
 
-  const recipe = await Recipe.findById(recipeId);
+  // Fetch the recipe to verify it exists
+  const recipe = await RecipeServices.getRecipeById(recipeId);
   if (!recipe) {
     throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
 
+  // Find the comment within the recipe
   const comment = recipe.comments.find(
-    (comment: any) => comment._id.toString() === commentId,
+    (comment: any) => comment._id.toString() === commentId
   );
 
   if (!comment) {
     throw new AppError(httpStatus.NOT_FOUND, 'Comment not found');
   }
 
-  if (comment.user.toString() !== req.user.id && req.user.role !== USER_ROLE.admin) {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      'You are not authorized to delete this comment',
-    );
+  // Check if the user is the owner of the comment or an admin
+  const isOwner = comment.user.toString() === req.user.id;
+  const isAdmin = req.user.role === USER_ROLE.admin;
+
+  if (!isOwner && !isAdmin) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Unauthorized to delete this comment');
   }
 
+  // Remove the comment from the recipe
   recipe.comments = recipe.comments.filter(
-    (comment: any) => comment._id.toString() !== commentId,
+    (comment: any) => comment._id.toString() !== commentId
   );
 
+  // Save the updated recipe document
   await recipe.save();
 
-  // Emit an event to all connected clients
-  req.app.get('socketService').emit('commentDeleted', {
-    recipeId,
-    commentId
-  });
+  // Optionally emit a delete event via socket.io if needed
+  // const io = req.app.get('io');
+  // io.emit(`commentDeleted-${recipeId}`, commentId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -684,7 +669,6 @@ const deleteComment = catchAsync(async (req: Request, res: Response) => {
     data: recipe,
   });
 });
-
 
 
 
@@ -787,6 +771,108 @@ const downvoteRecipe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+
+const getRecipesByUser: RequestHandler = catchAsync(async (req, res) => {
+  if (!req.user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
+  }
+
+  const userId = req.user.id; // Get the user's ID from the request
+
+  // Fetch all recipes created by this user
+  const recipes = await RecipeServices.getRecipesByUser(userId);
+
+  if (!recipes || recipes.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No recipes found for this user');
+  }
+
+  // Assuming req.user contains `isPremium` status, but also ensure it in the populated user
+  const user = {
+    id: req.user.id,
+    name: req.user.name,
+    profilePicture: req.user.profilePicture,
+    isPremium: req.user.isPremium,
+  };
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User recipes retrieved successfully',
+    data: {
+      recipes,
+      user, // Send user details including isPremium
+    },
+  });
+});
+
+
+
+
+
+const getUserSingleRecipe: RequestHandler = catchAsync(async (req, res) => {
+  if (!req.user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
+  }
+
+  const { recipeId } = req.params;
+  const userId = req.user.id; // Assuming the user ID is in req.user
+
+  // Fetch the recipe created by the user
+  const recipe = await RecipeServices.getUserSingleRecipe(recipeId, userId);
+
+  if (!recipe) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found or you are not authorized to view it');
+  }
+
+  // Return the full recipe details
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Recipe retrieved successfully',
+    data: recipe,
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+const editUserSingleRecipe: RequestHandler = catchAsync(async (req, res) => {
+  if (!req.user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
+  }
+
+  const { recipeId } = req.params;
+  const userId = req.user.id; // Assuming the user ID is in req.user
+  const updatedRecipeData = req.body; // Data to update the recipe
+
+  // Fetch and update the recipe created by the user
+  const updatedRecipe = await RecipeServices.editUserSingleRecipe(recipeId, userId, updatedRecipeData);
+
+  if (!updatedRecipe) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found or you are not authorized to edit it');
+  }
+
+  // Return the updated recipe details
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Recipe updated successfully',
+    data: updatedRecipe,
+  });
+});
+
+
+
+
 export const RecipeControllers = {
   createRecipe,
   getRecipeById,
@@ -800,6 +886,8 @@ export const RecipeControllers = {
   upvoteRecipe,
   downvoteRecipe,
   deleteComment,
-  getMyRecipes,
+  getRecipesByUser,
   publicGetRecipeById,
+  getUserSingleRecipe,
+  editUserSingleRecipe
 };

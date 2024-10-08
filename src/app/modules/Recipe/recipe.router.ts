@@ -10,10 +10,12 @@ router.get('/public/recipes/:recipeId', RecipeControllers.publicGetRecipeById);
 
 // Recipe routes
 router.post('/api/recipes', auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.createRecipe);
-router.get('/api/recipes/myrecipes', auth(USER_ROLE.user), RecipeControllers.getMyRecipes);
+router.get('/api/recipes/myrecipes/:recipeId', auth(), RecipeControllers.getUserSingleRecipe);
+router.put('/api/recipies/myrecipe/:recipeId',auth(), RecipeControllers.editUserSingleRecipe);
+router.get('/api/recipes/myrecipes', auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.getRecipesByUser);
 router.get('/api/recipes', RecipeControllers.getRecipes);
 router.get('/api/recipes/:recipeId',auth(), RecipeControllers.getRecipeById);
-router.put('/api/recipes/:recipeId',auth(USER_ROLE.user,USER_ROLE.admin), RecipeControllers.updateRecipe);
+router.put('/api/recipes/:recipeId',auth(USER_ROLE.admin), RecipeControllers.updateRecipe);
 router.delete(
   '/api/recipes/:recipeId',
   auth(USER_ROLE.admin, USER_ROLE.user),
@@ -44,7 +46,7 @@ router.put(
 );
 router.delete(
   '/api/recipes/:recipeId/comment/:commentId',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   RecipeControllers.deleteComment,
 );
 
