@@ -39,7 +39,7 @@ The Sam  System backend is a robust and scalable API designed to facilitate the 
 
 1. Clone the repository:
    ```sh 
-   git clone https://github.com/AshfaqueSami2/Sport-Facility-Turf-
+   git clone https://github.com/AshfaqueSami2/Recipe-Share-Backend/tree/main
    cd sports-bookings-system-backend
    Install dependencies:
 
