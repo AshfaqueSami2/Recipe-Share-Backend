@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model,} from 'mongoose';
 import { TRecipe } from './recipe.interface';
 import { RECIPE_PREMIUM_STATUS } from './recipe.constant';
 

@@ -5,63 +5,10 @@ import httpStatus from 'http-status';
 import { RecipeServices } from './recipe.service';
 import AppError from '../../errors/AppError';
 import { uploadImageToImageBB } from './recipe.utils';
-import { TUser } from '../User/user.interface';
 import { Recipe } from './recipe.model';
 import { USER_ROLE } from '../User/user.constant';
 import { Types } from 'mongoose';
 
-// const createRecipe: RequestHandler = catchAsync(async (req, res) => {
-//   if (!req.user) {
-//     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
-//   }
-
-//   const imageBase64Array = req.body.images || [];
-//   const imageUrls: string[] =
-//     imageBase64Array.length > 0
-//       ? await Promise.all(
-//           imageBase64Array.map((imageBase64: string) =>
-//             uploadImageToImageBB(imageBase64),
-//           ),
-//         )
-//       : [];
-
-//   const recipeData = {
-//     ...req.body,
-//     images: imageUrls,
-//     user: req.user.id,
-//   };
-
-//   // Create the recipe
-//   const result = await RecipeServices.createRecipe(recipeData);
-
-//   // Populate the user's name
-//   const populatedRecipe = await Recipe.findById(result._id).populate(
-//     'user',
-//     'name',
-//   );
-
-//   if (!populatedRecipe || !populatedRecipe.user) {
-//     throw new AppError(httpStatus.NOT_FOUND, 'Recipe or user not found');
-//   }
-
-//   // Type Assertion: We now assert that `user` is of type `TUser`
-//   const user = populatedRecipe.user as TUser;
-
-//   // Send the response with the populated user information
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Recipe created successfully',
-//     data: {
-//       recipe: populatedRecipe,
-//       user: {
-//         id: user._id, // Access the user ID
-//         name: user.name, // Access the user name
-//         pic: user.profilePicture,
-//       },
-//     },
-//   });
-// });
 const createRecipe: RequestHandler = catchAsync(async (req, res) => {
   if (!req.user) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
@@ -244,15 +191,10 @@ const updateRecipe = catchAsync(async (req: Request, res: Response) => {
 
 //get all recipes from db
 const getRecipes = catchAsync(async (req: Request, res: Response) => {
-  const filters = {}; // Add any filtering logic here
-  const options = {
-    search: req.query.search,
-    sort: req.query.sort,
-    page: parseInt(req.query.page as string, 10) || 1,
-    limit: parseInt(req.query.limit as string, 10) || 10,
-  };
+ 
+ 
 
-  const recipes = await RecipeServices.getRecipes(filters, options);
+  const recipes = await RecipeServices.getRecipes();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -366,18 +308,19 @@ const rateRecipe = catchAsync(async (req: Request, res: Response) => {
     : req.user.id;
 
   const existingRating = recipe.ratings.find(
-    (r: any) => r.user.toString() === userId.toString(),
+    (r: string ) => r.user.toString() === userId.toString(),
   );
 
-  if (existingRating) {
-    existingRating.rating = rating;
-  } else {
-    recipe.ratings.push({ user: userId, rating });
-  }
+ if (existingRating) {
+  existingRating.rating = rating;
+} else {
+  recipe.ratings.push({ user: userId, rating });
+}
+
 
   // Calculate the average rating only if there are valid ratings
   const totalRating = recipe.ratings.reduce(
-    (sum: number, r: any) => sum + r.rating,
+    (sum: number, r: string) => sum + r.rating,
     0,
   );
   recipe.averageRating = recipe.ratings.length
@@ -394,40 +337,7 @@ const rateRecipe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-//commentOnRecipe
-// const commentOnRecipe = catchAsync(async (req: Request, res: Response) => {
-//   if (!req.user) {
-//     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
-//   }
-
-//   const { recipeId } = req.params;
-//   const { comment } = req.body;
-
-//   const recipe = await Recipe.findById(recipeId);
-//   if (!recipe) {
-//     throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
-//   }
-
-//   const userId = Types.ObjectId.isValid(req.user.id)
-//     ? new Types.ObjectId(req.user.id)
-//     : req.user.id;
-
-//   recipe.comments.push({
-//     user: userId,
-//     comment,
-//     createdAt: new Date(),
-//   });
-
-//   await recipe.save();
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Comment added successfully',
-//     data: recipe,
-//   });
-// });
-
+// commentOnRecipe
 const commentOnRecipe = catchAsync(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
@@ -445,20 +355,13 @@ const commentOnRecipe = catchAsync(async (req: Request, res: Response) => {
     ? new Types.ObjectId(req.user.id)
     : req.user.id;
 
-  const newComment = {
+  recipe.comments.push({
     user: userId,
     comment,
     createdAt: new Date(),
-  };
+  });
 
-  recipe.comments.push(newComment);
   await recipe.save();
-
-  // Access the Socket.IO instance
-  const io = req.app.get('io'); // Retrieve io from the app
-
-  // Broadcast the new comment to all connected clients
-  io.emit(`recipe-${recipeId}`, newComment);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -470,153 +373,49 @@ const commentOnRecipe = catchAsync(async (req: Request, res: Response) => {
 
 
 
-
-// const updateComment = catchAsync(async (req: Request, res: Response) => {
-//   const { recipeId, commentId } = req.params;
-//   const { comment } = req.body;
-
-//   const recipe = await Recipe.findById(recipeId);
-//   if (!recipe) {
-//     throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
-//   }
-
-//   const commentToUpdate = recipe.comments.find(
-//     (c: any) =>
-//       c._id.toString() === commentId && c.user.toString() === req.user.id,
-//   );
-
-//   if (!commentToUpdate) {
-//     throw new AppError(
-//       httpStatus.FORBIDDEN,
-//       'Not authorized to update this comment',
-//     );
-//   }
-
-//   commentToUpdate.comment = comment;
-//   commentToUpdate.updatedAt = new Date();
-
-//   await recipe.save();
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Comment updated successfully',
-//     data: recipe,
-//   });
-// });
-
-
-
-// const deleteComment = catchAsync(async (req: Request, res: Response) => {
-//   const { recipeId, commentId } = req.params;
-
-//   // Check if user is authenticated
-//   if (!req.user) {
-//     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
-//   }
-
-//   const recipe = await Recipe.findById(recipeId);
-//   if (!recipe) {
-//     throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
-//   }
-
-//   // Find the comment to delete
-//   const comment = recipe.comments.find(
-//     (comment: any) => comment._id.toString() === commentId,
-//   );
-
-//   if (!comment) {
-//     throw new AppError(httpStatus.NOT_FOUND, 'Comment not found');
-//   }
-
-//   // Check if the user is the owner of the comment or an admin
-//   const isOwner = comment.user.toString() === req.user.id;
-//   const isAdmin = req.user.role === USER_ROLE.admin;
-
-//   if (!isOwner && !isAdmin) {
-//     throw new AppError(
-//       httpStatus.FORBIDDEN,
-//       'You are not authorized to delete this comment',
-//     );
-//   }
-
-//   // Delete the comment
-//   recipe.comments = recipe.comments.filter(
-//     (comment: any) => comment._id.toString() !== commentId,
-//   );
-
-//   await recipe.save();
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Comment deleted successfully',
-//     data: recipe,
-//   });
-// });
-
 const updateComment = catchAsync(async (req: Request, res: Response) => {
   const { recipeId, commentId } = req.params;
   const { comment } = req.body;
 
-  // Check if user is authenticated
-  if (!req.user) {
-    console.error('User not authenticated');
-    throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
+  // Ensure that the comment is not empty
+  if (!comment || comment.trim() === '') {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Comment cannot be empty');
   }
 
-  try {
-    // Find the recipe
-    const recipe = await Recipe.findById(recipeId);
-    if (!recipe) {
-      console.error('Recipe not found');
-      throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
-    }
-
-    // Find the comment to update and check authorization
-    const commentToUpdate = recipe.comments.find(
-      (c: any) => c._id.toString() === commentId && c.user.toString() === req.user.id
-    );
-
-    if (!commentToUpdate) {
-      console.error('Not authorized to update this comment');
-      throw new AppError(httpStatus.FORBIDDEN, 'Not authorized to update this comment');
-    }
-
-    // Update the comment
-    commentToUpdate.comment = comment;
-    commentToUpdate.updatedAt = new Date();
-
-    console.log('Updating comment in the database...');
-    
-    // Save the recipe
-    await recipe.save();
-
-    console.log('Comment updated successfully in the database.');
-
-    // Temporarily disable socket emission to see if that's causing the issue
-    // req.app.get('socketService').emit('commentUpdated', {
-    //   recipeId,
-    //   commentId,
-    //   comment: commentToUpdate,
-    // });
-
-    // Send a success response
-    return res.status(200).json({
-      success: true,
-      message: 'Comment updated successfully',
-      data: recipe,
-    });
-
-  } catch (error) {
-    console.error('Error during comment update:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update comment',
-      error: error.message || 'Internal Server Error',
-    });
+  // Find the recipe
+  const recipe = await Recipe.findById(recipeId);
+  if (!recipe) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
+
+  // Find the comment to update
+  const commentToUpdate = recipe.comments.find(
+    (c: string) =>
+      c._id.toString() === commentId && c.user.toString() === req.user.id
+  );
+
+  // Ensure the comment exists and the user is authorized to edit it
+  if (!commentToUpdate) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Not authorized to update this comment');
+  }
+
+  // Update the comment and the updatedAt field
+  commentToUpdate.comment = comment;
+  commentToUpdate.updatedAt = new Date();
+
+  // Save the recipe with the updated comment
+  await recipe.save();
+
+  // Send a success response with the updated recipe data
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Comment updated successfully',
+    data: recipe,
+  });
 });
+
+
 
 
 const deleteComment = catchAsync(async (req: Request, res: Response) => {
@@ -627,15 +426,14 @@ const deleteComment = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(httpStatus.UNAUTHORIZED, 'User not authenticated');
   }
 
-  // Fetch the recipe to verify it exists
-  const recipe = await RecipeServices.getRecipeById(recipeId);
+  const recipe = await Recipe.findById(recipeId);
   if (!recipe) {
     throw new AppError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
 
-  // Find the comment within the recipe
+  // Find the comment to delete
   const comment = recipe.comments.find(
-    (comment: any) => comment._id.toString() === commentId
+    (comment: string) => comment._id.toString() === commentId,
   );
 
   if (!comment) {
@@ -647,20 +445,18 @@ const deleteComment = catchAsync(async (req: Request, res: Response) => {
   const isAdmin = req.user.role === USER_ROLE.admin;
 
   if (!isOwner && !isAdmin) {
-    throw new AppError(httpStatus.FORBIDDEN, 'Unauthorized to delete this comment');
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'You are not authorized to delete this comment',
+    );
   }
 
-  // Remove the comment from the recipe
+  // Delete the comment
   recipe.comments = recipe.comments.filter(
-    (comment: any) => comment._id.toString() !== commentId
+    (comment: string) => comment._id.toString() !== commentId,
   );
 
-  // Save the updated recipe document
   await recipe.save();
-
-  // Optionally emit a delete event via socket.io if needed
-  // const io = req.app.get('io');
-  // io.emit(`commentDeleted-${recipeId}`, commentId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -6,7 +6,7 @@ import config from '../../config';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../../utils/sendEmail';
-import catchAsync from '../../utils/catchAsync';
+
 
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.isUserExistsByEmail(payload?.email);
@@ -41,7 +41,7 @@ const loginUser = async (payload: TLoginUser) => {
     address: user.address,
   };
 
-  console.log(jwtPayload.name)
+
 
   // create toke and sent to the client
   const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, {

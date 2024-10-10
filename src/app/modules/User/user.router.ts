@@ -3,6 +3,7 @@ import { UserControllers } from './user.controller';
 import validateRequest from '../../../middlewares/validateRequest';
 import { UserValidation } from './user.validation';
 import auth from '../../../middlewares/auth';
+import { USER_ROLE } from './user.constant';
 
 const router = express.Router();
 
@@ -18,10 +19,11 @@ router.get('/api/user/:userId', UserControllers.getUserProfile);
 
 //user update their profile
 router.put('/api/user/:userId', UserControllers.updateUserProfile);
+router.put('/api/userU/:userId', UserControllers.getUserProfileU);
 
 
 //follow unfollow 
-router.post('/api/:userId/follow', UserControllers.followUser);
-router.post('/api/:userId/unfollow', UserControllers.unfollowUser);
+router.post('/api/:userId/follow',auth(USER_ROLE.user), UserControllers.followUser);
+router.post('/api/:userId/unfollow',auth(USER_ROLE.user), UserControllers.unfollowUser);
 
 export const UserRoutes = router;

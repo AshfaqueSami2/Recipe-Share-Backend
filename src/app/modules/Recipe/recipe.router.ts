@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { RecipeControllers } from './recipe.controller';
 import auth from '../../../middlewares/auth';
 import { USER_ROLE } from '../User/user.constant';
+import { Recipe } from './recipe.model';
 
 const router = Router();
 
@@ -61,5 +62,23 @@ router.post(
   auth(USER_ROLE.user),
   RecipeControllers.downvoteRecipe,
 );
+
+
+router.patch('/recipes/:id/togglePublish', async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+    // Toggle the published state
+    recipe.published = !recipe.published;
+    await recipe.save();
+
+    const status = recipe.published ? 'published' : 'unpublished';
+    res.status(200).json({ message: `Recipe ${status} successfully` });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 export const RecipeRoutes = router;

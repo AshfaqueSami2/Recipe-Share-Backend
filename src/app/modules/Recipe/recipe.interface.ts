@@ -1,6 +1,15 @@
-import { Document, Schema, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { TUser } from '../User/user.interface';
 import { RECIPE_PREMIUM_STATUS } from './recipe.constant';
+
+
+ export interface Comment {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+  comment: string;
+  createdAt: Date;
+  updatedAt?: Date;
+}
 
 export interface TRecipe extends Document {
   title: string;

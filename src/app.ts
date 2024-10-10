@@ -8,8 +8,6 @@ import { AuthRoutes } from './app/modules/Auth/auth.route';
 import { RecipeRoutes } from './app/modules/Recipe/recipe.router';
 
 import { AdminRouter } from './app/modules/Admin/admin.routes';
-import { PaymentRouter } from './app/modules/Payment/payment.route';
-
 
 const app: Application = express();
 
@@ -21,9 +19,9 @@ app.use(cors());
 
 app.use('/', UserRoutes);
 app.use('/', AuthRoutes);
-app.use('/',RecipeRoutes)
-app.use('/',PaymentRouter)
-app.use('/',AdminRouter)
+app.use('/', RecipeRoutes);
+
+app.use('/', AdminRouter);
 
 app.use(
   session({

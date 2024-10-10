@@ -7,7 +7,7 @@ import AppError from '../../errors/AppError';
 import crypto from 'crypto';
 import { User } from '../User/user.model';
 import config from '../../config';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt, {} from 'jsonwebtoken';
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { user, accessToken, refreshToken } = await AuthServices.loginUser(

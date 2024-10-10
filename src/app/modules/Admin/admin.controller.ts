@@ -4,7 +4,6 @@ import catchAsync from '../../utils/catchAsync';
 import { User } from '../User/user.model';
 import sendResponse from '../../utils/sendResponse';
 import AppError from '../../errors/AppError';
-import { RecipeServices } from '../Recipe/recipe.service';
 import { Recipe } from '../Recipe/recipe.model';
 
 // Block a user

@@ -16,6 +16,10 @@
 //   }
 // }
 
+
+
+
+
 // main();
 import mongoose from 'mongoose';
 import http from 'http';
@@ -40,23 +44,23 @@ async function main() {
 
     // Handle WebSocket connections
     io.on('connection', (socket) => {
-      console.log('A user connected:', socket.id);
+      // console.log('A user connected:', socket.id);
 
       // Optionally handle disconnection
       socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        // console.log('User disconnected:', socket.id);
       });
     });
 
     // Start the server and listen on the configured port
     server.listen(config.port, () => {
-      console.log(`Server running on port ${config.port}`);
+      // console.log(`Server running on port ${config.port}`);
     });
 
     // Export `io` for use in other modules
     app.set('io', io); // Attach to the app so it can be accessed globally
   } catch (error) {
-    console.error('Failed to connect to the database', error);
+    // console.error('Failed to connect to the database', error);
   }
 }
 

@@ -1,4 +1,3 @@
-import { Model } from 'mongoose';
 
 export interface TUser {
   passwordResetToken: string | undefined;
@@ -21,15 +20,15 @@ export interface TUser {
   following: string[];
 }
 
-export interface UserModel extends Model<TUser> {
-  isUserExistsByEmail(email: string): Promise<TUser | null>;
-  isUserExistsByCustomId(id: string): Promise<TUser>;
-  isPasswordMatched(
-    plainTextPassword: string,
-    hashedPassword: string,
-  ): Promise<boolean>;
-  isJWTIssuedBeforePasswordChanged(
-    passwordChangedTimestamp: Date,
-    jwtIssuedTimestamp: number,
-  ): boolean;
-}
+// export interface UserModel extends Model<TUser> {
+//   isUserExistsByEmail(email: string): Promise<TUser | null>;
+//   isUserExistsByCustomId(id: string): Promise<TUser>;
+//   isPasswordMatched(
+//     plainTextPassword: string,
+//     hashedPassword: string,
+//   ): Promise<boolean>;
+//   isJWTIssuedBeforePasswordChanged(
+//     passwordChangedTimestamp: Date,
+//     jwtIssuedTimestamp: number,
+//   ): boolean;
+// }

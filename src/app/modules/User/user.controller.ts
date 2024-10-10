@@ -1,4 +1,4 @@
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { Request, RequestHandler, Response } from 'express';
 import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
 import httpStatus from 'http-status';
@@ -29,6 +29,25 @@ const createUser: RequestHandler = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+//user profile (User access)
+// Backend: Check if the user trying to access the profile is the same as the logged-in user
+const getUserProfileU = async (req, res) => {
+  const loggedInUserId = req.user._id; // Assuming you get this from your JWT middleware
+  const { userId } = req.params;
+
+  // Prevent accessing other users' profiles
+  if (loggedInUserId !== userId) {
+    return res.status(403).json({ error: 'Unauthorized access' });
+  }
+
+  // Fetch and return the user's profile
+  const user = await User.findById(userId);
+  return res.json({ data: user });
+};
+
+
+
 //get user/admin profile
 
 const getUserProfile = catchAsync(async (req: Request, res: Response) => {
@@ -67,7 +86,7 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
   const { name, profilePicture, bio } = req.body;
 
   // If a profile picture is provided, upload it to ImageBB
-  let updatedData: { name?: string; profilePicture?: string; bio?: string } = {
+  const updatedData: { name?: string; profilePicture?: string; bio?: string } = {
     name,
     bio,
   };
@@ -113,7 +132,7 @@ const followUser = catchAsync(async (req: Request, res: Response) => {
 const unfollowUser = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params; // The user who is going to be unfollowed
   const { currentUserId } = req.body; // The user who is unfollowing
-  console.log(currentUserId)
+ 
 
 
   // Call the service to unfollow the user
@@ -133,4 +152,5 @@ export const UserControllers = {
   updateUserProfile,
   followUser,
   unfollowUser,
+  getUserProfileU
 };
