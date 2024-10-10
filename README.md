@@ -8,7 +8,7 @@ The Sam  System backend is a robust and scalable API designed to facilitate the 
   - Registration and authentication for users.
   - User roles and permissions (e.g., admin, regular user).
 
-- **Facility Management:**
+- **Recipe Management:**
   - CRUD (Create, Read, Update, Delete) operations for sports facilities.
   - Recipe details including name, description, location, and price per hour.
   - Management of facility availability and booking slots.
